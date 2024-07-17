@@ -1,0 +1,44 @@
+name: Diagram Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python 3
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install diagrams
+
+    - name: Run script
+      run: |
+        # Ensure we are not set to launch a web browser
+        find . -type f -name \*.py -exec sed -i 's/show=True/show=False/g' {} \; -print
+        
+        # Now generate the images
+        python3 diagram-azure1.py
+
+    - name: Create zip of PNG files
+      run: |
+        mkdir pngs
+        mv *.png pngs/
+        zip -r diagrams.zip pngs/
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: diagrams
+        path: diagrams.zip
